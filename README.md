@@ -1,5 +1,5 @@
 # Mezzio Routing Contracts
-
+[![Latest Stable Version](http://poser.pugx.org/sirix/mezzio-routing-contracts/v)](https://packagist.org/packages/sirix/mezzio-routing-contracts) [![Total Downloads](http://poser.pugx.org/sirix/mezzio-routing-contracts/downloads)](https://packagist.org/packages/sirix/mezzio-routing-contracts) [![Latest Unstable Version](http://poser.pugx.org/sirix/mezzio-routing-contracts/v/unstable)](https://packagist.org/packages/sirix/mezzio-routing-contracts) [![License](http://poser.pugx.org/sirix/mezzio-routing-contracts/license)](https://packagist.org/packages/sirix/mezzio-routing-contracts) [![PHP Version Require](http://poser.pugx.org/sirix/mezzio-routing-contracts/require/php)](https://packagist.org/packages/sirix/mezzio-routing-contracts)
 
 Contracts for [sirix/mezzio-routing-attributes](https://github.com/sirix777/mezzio-routing-attributes) route attribute modifiers.
 
