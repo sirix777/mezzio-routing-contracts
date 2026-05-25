@@ -3,7 +3,7 @@
 
 Contracts for [sirix/mezzio-routing-attributes](https://github.com/sirix777/mezzio-routing-attributes) route attribute modifiers.
 
-> **Pre-1.0 package:** Not yet production-ready. Public contracts may change with breaking changes before `1.0.0`.
+This package contains the stable public contract used by routing attributes that need to contribute middleware or default route options to a route definition.
 
 ## Installation
 
@@ -54,7 +54,7 @@ final class OrdersHandler
 
 The routing-attributes package discovers all implementations of `RouteAttributeModifierInterface` at boot time and merges their middleware and defaults into the route definition.
 
-## Interface
+## Contract
 
 ```php
 interface RouteAttributeModifierInterface
@@ -66,3 +66,18 @@ interface RouteAttributeModifierInterface
     public function getDefaults(): array;
 }
 ```
+
+### `getMiddleware()`
+
+Returns middleware identifiers that should be appended to the route pipeline.
+Each item must be a middleware class name implementing `Psr\Http\Server\MiddlewareInterface` or another non-empty middleware identifier supported by the consuming router integration.
+
+### `getDefaults()`
+
+Returns default route options keyed by option name.
+Consumers merge these values into the route defaults/options for the route that carries the attribute.
+
+## Versioning
+
+The `1.x` series follows [Semantic Versioning](https://semver.org/).
+Breaking changes to public contracts are reserved for the next major version.
