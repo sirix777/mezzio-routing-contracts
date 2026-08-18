@@ -7,7 +7,9 @@ namespace Sirix\Mezzio\Routing\Contracts\Test\Contract;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Sirix\Mezzio\Routing\Contracts\MiddlewareSpecification;
 use Sirix\Mezzio\Routing\Contracts\RouteAttributeModifierInterface;
+use Sirix\Mezzio\Routing\Contracts\Test\Stub\MiddlewareFactoryStub;
 use Sirix\Mezzio\Routing\Contracts\Test\Stub\RouteAttributeModifierStub;
 
 use function interface_exists;
@@ -75,5 +77,22 @@ final class RouteAttributeModifierInterfaceTest extends TestCase
         self::assertSame('B\Middleware', $second->getMiddleware()[0]);
         self::assertSame(['a' => 1], $first->getDefaults());
         self::assertSame(['b' => 2], $second->getDefaults());
+    }
+
+    #[Test]
+    public function getMiddlewareAcceptsMiddlewareSpecifications(): void
+    {
+        $spec = new MiddlewareSpecification(
+            service: 'auth.middleware',
+            factory: MiddlewareFactoryStub::class,
+            arguments: ['profile' => 'api'],
+        );
+        $stub = new RouteAttributeModifierStub(middleware: ['A\Middleware', $spec]);
+
+        $middleware = $stub->getMiddleware();
+
+        self::assertCount(2, $middleware);
+        self::assertSame('A\Middleware', $middleware[0]);
+        self::assertSame($spec, $middleware[1]);
     }
 }
