@@ -35,13 +35,21 @@ final class MiddlewareSpecificationTest extends TestCase
         $spec = new MiddlewareSpecification(
             service: 'auth.middleware',
             factory: MiddlewareFactoryStub::class,
-            arguments: ['profile' => 'api', 'enabled' => true, 'attempts' => 3],
+            arguments: [
+                'profile'  => 'api',
+                'enabled'  => true,
+                'attempts' => 3,
+            ],
         );
 
         self::assertSame('auth.middleware', $spec->service);
         self::assertSame(MiddlewareFactoryStub::class, $spec->factory);
         self::assertSame(
-            ['profile' => 'api', 'enabled' => true, 'attempts' => 3],
+            [
+                'profile'  => 'api',
+                'enabled'  => true,
+                'attempts' => 3,
+            ],
             $spec->arguments,
         );
     }
@@ -51,10 +59,20 @@ final class MiddlewareSpecificationTest extends TestCase
     {
         $spec = new MiddlewareSpecification(
             service: 'nested',
-            arguments: ['list' => ['a', 'b', 'c'], 'flags' => ['x' => true]],
+            arguments: [
+                'list'  => ['a', 'b', 'c'],
+                'flags' => [
+                    'x' => true,
+                ],
+            ],
         );
 
-        self::assertSame(['list' => ['a', 'b', 'c'], 'flags' => ['x' => true]], $spec->arguments);
+        self::assertSame([
+            'list'  => ['a', 'b', 'c'],
+            'flags' => [
+                'x' => true,
+            ],
+        ], $spec->arguments);
     }
 
     #[Test]
@@ -74,7 +92,9 @@ final class MiddlewareSpecificationTest extends TestCase
 
         new MiddlewareSpecification(
             service: 'middleware',
-            arguments: ['object' => new stdClass()],
+            arguments: [
+                'object' => new stdClass(),
+            ],
         );
     }
 
@@ -86,7 +106,9 @@ final class MiddlewareSpecificationTest extends TestCase
 
         new MiddlewareSpecification(
             service: 'middleware',
-            arguments: ['resource' => fopen('php://memory', 'rb')],
+            arguments: [
+                'resource' => fopen('php://memory', 'rb'),
+            ],
         );
     }
 
@@ -98,15 +120,21 @@ final class MiddlewareSpecificationTest extends TestCase
 
         new MiddlewareSpecification(
             service: 'middleware',
-            arguments: ['nested' => ['ok', new stdClass()]],
+            arguments: [
+                'nested' => ['ok', new stdClass()],
+            ],
         );
     }
 
     #[Test]
     public function signatureIsDeterministicForEqualSpecs(): void
     {
-        $first = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class, ['x' => 1]);
-        $second = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class, ['x' => 1]);
+        $first = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class, [
+            'x' => 1,
+        ]);
+        $second = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class, [
+            'x' => 1,
+        ]);
 
         self::assertSame($first->signature(), $second->signature());
     }
@@ -114,7 +142,7 @@ final class MiddlewareSpecificationTest extends TestCase
     #[Test]
     public function signatureDiffersWhenServiceDiffers(): void
     {
-        $first = new MiddlewareSpecification('middleware.a');
+        $first  = new MiddlewareSpecification('middleware.a');
         $second = new MiddlewareSpecification('middleware.b');
 
         self::assertNotSame($first->signature(), $second->signature());
@@ -123,7 +151,7 @@ final class MiddlewareSpecificationTest extends TestCase
     #[Test]
     public function signatureDiffersWhenFactoryDiffers(): void
     {
-        $first = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class);
+        $first  = new MiddlewareSpecification('middleware', MiddlewareFactoryStub::class);
         $second = new MiddlewareSpecification('middleware', MiddlewareFactoryInterface::class);
 
         self::assertNotSame($first->signature(), $second->signature());
@@ -132,8 +160,12 @@ final class MiddlewareSpecificationTest extends TestCase
     #[Test]
     public function signatureDiffersWhenArgumentsDiffer(): void
     {
-        $first = new MiddlewareSpecification('middleware', null, ['x' => 1]);
-        $second = new MiddlewareSpecification('middleware', null, ['x' => 2]);
+        $first = new MiddlewareSpecification('middleware', null, [
+            'x' => 1,
+        ]);
+        $second = new MiddlewareSpecification('middleware', null, [
+            'x' => 2,
+        ]);
 
         self::assertNotSame($first->signature(), $second->signature());
     }
@@ -144,10 +176,15 @@ final class MiddlewareSpecificationTest extends TestCase
         $original = new MiddlewareSpecification(
             service: 'middleware',
             factory: MiddlewareFactoryStub::class,
-            arguments: ['a' => 1, 'b' => ['c' => true]],
+            arguments: [
+                'a' => 1,
+                'b' => [
+                    'c' => true,
+                ],
+            ],
         );
 
-        $exported = var_export($original, true);
+        $exported   = var_export($original, true);
         $rehydrated = eval('return ' . $exported . ';');
 
         self::assertInstanceOf(MiddlewareSpecification::class, $rehydrated);
@@ -164,9 +201,11 @@ final class MiddlewareSpecificationTest extends TestCase
         $this->expectExceptionMessage('argument at "arguments[bad]" must be a scalar');
 
         MiddlewareSpecification::__set_state([
-            'service' => 'middleware',
-            'factory' => null,
-            'arguments' => ['bad' => new stdClass()],
+            'service'   => 'middleware',
+            'factory'   => null,
+            'arguments' => [
+                'bad' => new stdClass(),
+            ],
         ]);
     }
 }

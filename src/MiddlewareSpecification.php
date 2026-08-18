@@ -37,7 +37,7 @@ final readonly class MiddlewareSpecification
 
         self::validateArguments($arguments, 'arguments');
 
-        $this->service = $service;
+        $this->service   = $service;
         $this->arguments = $arguments;
     }
 
@@ -46,8 +46,8 @@ final readonly class MiddlewareSpecification
      */
     public static function __set_state(array $props): self
     {
-        $service = isset($props['service']) && is_string($props['service']) ? $props['service'] : '';
-        $factory = isset($props['factory']) && is_string($props['factory']) ? $props['factory'] : null;
+        $service   = isset($props['service']) && is_string($props['service']) ? $props['service'] : '';
+        $factory   = isset($props['factory']) && is_string($props['factory']) ? $props['factory'] : null;
         $arguments = isset($props['arguments']) && is_array($props['arguments']) ? $props['arguments'] : [];
 
         return new self($service, $factory, $arguments);
