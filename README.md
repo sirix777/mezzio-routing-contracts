@@ -54,12 +54,67 @@ final class OrdersHandler
 
 The routing-attributes package discovers all implementations of `RouteAttributeModifierInterface` at boot time and merges their middleware and defaults into the route definition.
 
+## MiddlewareSpecification
+
+`MiddlewareSpecification` is a serializable value object that describes how to build a middleware instance via a factory. Use it when an attribute needs to pass recipe-style arguments to a middleware factory instead of returning only a plain service id.
+
+```php
+use Attribute;
+use Sirix\Mezzio\Routing\Contracts\MiddlewareSpecification;
+use Sirix\Mezzio\Routing\Contracts\RouteAttributeModifierInterface;
+
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+final readonly class Authenticated implements RouteAttributeModifierInterface
+{
+    public function __construct(private string $profile = 'default') {}
+
+    public function getMiddleware(): array
+    {
+        return [
+            new MiddlewareSpecification(
+                service: AuthenticatedMiddleware::class,
+                factory: AuthenticatedMiddlewareFactory::class,
+                arguments: ['profile' => $this->profile],
+            ),
+        ];
+    }
+
+    public function getDefaults(): array
+    {
+        return [];
+    }
+}
+```
+
+## MiddlewareFactoryInterface
+
+Implement this contract to turn a `MiddlewareSpecification` into a `MiddlewareInterface` instance. The factory receives the PSR-11 container and the specification, so it can resolve dependencies and interpret the recipe at pipeline-build time.
+
+```php
+use Psr\Container\ContainerInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Sirix\Mezzio\Routing\Contracts\MiddlewareFactoryInterface;
+use Sirix\Mezzio\Routing\Contracts\MiddlewareSpecification;
+
+final readonly class AuthenticatedMiddlewareFactory implements MiddlewareFactoryInterface
+{
+    public function create(
+        ContainerInterface $container,
+        MiddlewareSpecification $specification,
+    ): MiddlewareInterface {
+        return new AuthenticatedMiddleware(profile: $specification->arguments['profile']);
+    }
+}
+```
+
 ## Contract
 
 ```php
 interface RouteAttributeModifierInterface
 {
-    /** @return list<class-string<MiddlewareInterface>|non-empty-string> */
+    /**
+     * @return list<class-string<MiddlewareInterface>|non-empty-string|MiddlewareSpecification>
+     */
     public function getMiddleware(): array;
 
     /** @return array<string, mixed> */
@@ -70,12 +125,22 @@ interface RouteAttributeModifierInterface
 ### `getMiddleware()`
 
 Returns middleware identifiers that should be appended to the route pipeline.
-Each item must be a middleware class name implementing `Psr\Http\Server\MiddlewareInterface` or another non-empty middleware identifier supported by the consuming router integration.
+Each item must be one of:
+
+- a middleware class name implementing `Psr\Http\Server\MiddlewareInterface`;
+- another non-empty middleware identifier supported by the consuming router integration;
+- a `MiddlewareSpecification` describing how to build a middleware instance via a factory.
+
+Existing implementations that return only strings remain valid; the `MiddlewareSpecification` type is additive.
 
 ### `getDefaults()`
 
 Returns default route options keyed by option name.
 Consumers merge these values into the route defaults/options for the route that carries the attribute.
+
+## Caching
+
+Route definitions (including middleware specifications) are exported into PHP route-cache files. Because `MiddlewareSpecification` is rehydrated through `__set_state`, its `$arguments` are restricted to serializable scalars and nested scalar arrays. The constructor enforces this invariant at creation time and again during rehydration, so cached route definitions cannot accidentally contain non-exportable values.
 
 ## Versioning
 

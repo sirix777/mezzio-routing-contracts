@@ -9,7 +9,7 @@ use Psr\Http\Server\MiddlewareInterface;
 interface RouteAttributeModifierInterface
 {
     /**
-     * @return list<class-string<MiddlewareInterface>|non-empty-string>
+     * @return list<class-string<MiddlewareInterface>|MiddlewareSpecification|non-empty-string>
      */
     public function getMiddleware(): array;
 
