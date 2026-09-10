@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-10
+
+### Added
+- `AggregatingRouteAttributeModifierInterface`, an opt-in contract for merging accumulated
+  route defaults and declaring middleware with a stable, per-route identity key.
+
 ## [1.1.0] - 2026-08-18
 
 ### Added

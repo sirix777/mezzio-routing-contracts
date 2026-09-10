@@ -122,6 +122,48 @@ interface RouteAttributeModifierInterface
 }
 ```
 
+### `AggregatingRouteAttributeModifierInterface`
+
+Implement this opt-in extension when repeatable modifiers must accumulate values under
+the same defaults key, or when one of their middleware entries must be included only once
+per route definition. Existing `RouteAttributeModifierInterface` implementations keep their
+shallow defaults merge and repeatable middleware behavior.
+
+```php
+interface AggregatingRouteAttributeModifierInterface extends RouteAttributeModifierInterface
+{
+    /**
+     * @param array<string, mixed> $defaults
+     * @return array<string, mixed>
+     */
+    public function mergeDefaults(array $defaults): array;
+
+    /**
+     * @return array<non-empty-string, MiddlewareSpecification|non-empty-string>
+     */
+    public function getUniqueMiddleware(): array;
+}
+```
+
+### `mergeDefaults()`
+
+Receives the defaults accumulated for the route before the modifier is applied and must return
+the complete defaults array to use afterwards. This lets a modifier append to an existing list
+instead of replacing it through the ordinary shallow merge.
+
+### `getUniqueMiddleware()`
+
+Returns an associative array whose non-empty string keys are stable middleware identity keys. Prefer
+a namespaced key such as `vendor.package.middleware`. A key identifies exactly one middleware identity
+for an entire route definition. Each value is a non-empty middleware service identifier or a
+`MiddlewareSpecification`.
+
+A consumer adds the first value for a key and deduplicates only later values with the same identity.
+It must reject a later value for the same key when its identity differs: string identifiers are equal
+only when identical; `MiddlewareSpecification` values are equal only when their `signature()` values
+are identical; and a string is never equal to a `MiddlewareSpecification`. Unrelated middleware and
+middleware returned by `getMiddleware()` remain repeatable.
+
 ### `getMiddleware()`
 
 Returns middleware identifiers that should be appended to the route pipeline.
