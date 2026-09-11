@@ -26,8 +26,13 @@ interface AggregatingRouteAttributeModifierInterface extends RouteAttributeModif
      * middleware identity for the entire route definition. Consumers must add the first value for
      * a key, deduplicate a later equivalent value, and reject a later value with a different
      * identity. Two string identifiers are equivalent only when they are identical. Two
-     * MiddlewareSpecification instances are equivalent only when their signature() values are
-     * identical; a string and a MiddlewareSpecification are never equivalent.
+     * MiddlewareSpecification instances are equivalent only when their canonical signature() values
+     * are identical. The signature uses a type-tagged encoding of the complete (service, factory,
+     * arguments) tuple, preserving service/factory boundaries, null versus an empty factory string,
+     * scalar and array-key types, exact float representations, key order, and nested arguments.
+     * The cache-safe canonical representation preserves this equivalence during route-cache
+     * rehydration. Consumers must fail closed on any difference in a repeated key's value; a string
+     * and a MiddlewareSpecification are never equivalent.
      *
      * @return array<non-empty-string, MiddlewareSpecification|non-empty-string>
      */

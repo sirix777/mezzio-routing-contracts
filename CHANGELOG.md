@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.2.1] - 2026-09-11
+
+### Fixed
+- `MiddlewareSpecification::signature()` now uses a canonical type-tagged encoding of the full
+  (`service`, `factory`, and `arguments`) tuple, preserving service/factory boundaries, null values,
+  scalar and key types, exact float representations, array order, and nested arguments.
+- Route-cache rehydration now preserves exact float representations through a canonical shadow state
+  when cache generators export with `serialize_precision=-1`, retains strict legacy cache compatibility,
+  and rejects references that could introduce cycles or mutable middleware arguments.
+
+### Changed
+- Clarified that consumers deduplicating a repeated unique middleware key must use the canonical
+  signature and fail closed when it differs.
+- Cache rehydration now rejects missing, unknown, and incorrectly typed properties.
+
 ## [1.2.0] - 2026-09-10
 
 ### Added

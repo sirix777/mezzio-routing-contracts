@@ -159,10 +159,14 @@ for an entire route definition. Each value is a non-empty middleware service ide
 `MiddlewareSpecification`.
 
 A consumer adds the first value for a key and deduplicates only later values with the same identity.
-It must reject a later value for the same key when its identity differs: string identifiers are equal
-only when identical; `MiddlewareSpecification` values are equal only when their `signature()` values
-are identical; and a string is never equal to a `MiddlewareSpecification`. Unrelated middleware and
-middleware returned by `getMiddleware()` remain repeatable.
+It must fail closed by rejecting a later value for the same key when its identity differs: string
+identifiers are equal only when identical; `MiddlewareSpecification` values are equal only when their
+canonical `signature()` values are identical; and a string is never equal to a
+`MiddlewareSpecification`. The signature uses a canonical type-tagged encoding of the complete
+`(service, factory, arguments)` tuple, preserving service/factory boundaries, `null` versus an empty
+factory string, scalar and array-key types, exact float representations, key order, and nested arguments.
+Unrelated middleware and middleware returned by
+`getMiddleware()` remain repeatable.
 
 ### `getMiddleware()`
 
@@ -182,7 +186,9 @@ Consumers merge these values into the route defaults/options for the route that 
 
 ## Caching
 
-Route definitions (including middleware specifications) are exported into PHP route-cache files. Because `MiddlewareSpecification` is rehydrated through `__set_state`, its `$arguments` are restricted to serializable scalars and nested scalar arrays. The constructor enforces this invariant at creation time and again during rehydration, so cached route definitions cannot accidentally contain non-exportable values.
+Route definitions (including middleware specifications) are exported into PHP route-cache files. Because `MiddlewareSpecification` is rehydrated through `__set_state`, its `$arguments` are restricted to serializable scalars and nested scalar arrays. New cache entries include a canonical representation that is authoritative during rehydration; legacy three-property cache entries remain supported through a strict compatibility path. Both paths reject missing, unknown, or incorrectly typed properties, and constructor and rehydration reject array references, preventing cyclic or externally mutable arguments from entering cached route definitions.
+
+When generating a route cache with `var_export()`, set `serialize_precision=-1` for the export and restore the prior setting in a `finally` block. Under that export contract, canonical rehydration preserves exact float identity. Lower precision may alter float literals before `__set_state()` is called, including non-finite values.
 
 ## Versioning
 
