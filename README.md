@@ -186,9 +186,15 @@ Consumers merge these values into the route defaults/options for the route that 
 
 ## Caching
 
-Route definitions (including middleware specifications) are exported into PHP route-cache files. Because `MiddlewareSpecification` is rehydrated through `__set_state`, its `$arguments` are restricted to serializable scalars and nested scalar arrays. New cache entries include a canonical representation that is authoritative during rehydration; legacy three-property cache entries remain supported through a strict compatibility path. Both paths reject missing, unknown, or incorrectly typed properties, and constructor and rehydration reject array references, preventing cyclic or externally mutable arguments from entering cached route definitions.
+Route definitions (including middleware specifications) are exported into PHP route-cache files. Because `MiddlewareSpecification` is rehydrated through `__set_state`, its `$arguments` are restricted to serializable scalars and nested scalar arrays. Route-cache exports contain the plain `(service, factory, arguments)` properties. Legacy three-property cache entries (1.2.0) and transitional four-property cache entries (1.2.1, with `canonicalArguments`) remain supported through strict compatibility paths. A transitional entry whose `arguments` and `canonicalArguments` disagree is rejected as malformed instead of being silently rehydrated; finite floats are compared by their IEEE-754 bit representation, so `0.0` and `-0.0` mismatches are also rejected. All paths reject missing, unknown, or incorrectly typed properties, and constructor and rehydration reject array references, preventing cyclic or externally mutable arguments from entering cached route definitions.
 
-When generating a route cache with `var_export()`, set `serialize_precision=-1` for the export and restore the prior setting in a `finally` block. Under that export contract, canonical rehydration preserves exact float identity. Lower precision may alter float literals before `__set_state()` is called, including non-finite values.
+When generating a route cache with `var_export()`, set `serialize_precision=-1` for the export and restore the prior setting in a `finally` block. Under that export contract, rehydration preserves exact float identity. Lower precision may alter float literals before `__set_state()` is called.
+
+Native serialization does not depend on the export contract: `__serialize()` stores the arguments as a compact canonical string with exact IEEE-754 float bit strings, built on demand, so `unserialize()` round trips preserve float identity under any `serialize_precision`.
+
+### Non-finite float identity
+
+`signature()` treats all `NAN` values as one canonical identity, because distinct NaN payloads cannot survive a `var_export()` cache round trip (`NAN` is exported as a single literal). `INF` and `-INF` remain distinct identities and round-trip exactly, including `0.0` versus `-0.0`. Two specifications whose arguments differ only in NaN payload are therefore equivalent by design; 1.2.1 briefly distinguished NaN payloads in signatures, which is no longer guaranteed. `signature()` encodes the `(service, factory, arguments)` tuple with `serialize()` under a temporarily forced `serialize_precision=-1` (restored in a `finally` block): it is independent of the ambient setting, computed on demand, and holds no persistent per-instance or global state.
 
 ## Versioning
 

@@ -1,0 +1,216 @@
+{
+    "label": "1.2.0",
+    "revision": "06f255652b6fc7dd635f7bcd5c7e59966a1c09a3",
+    "dirty_files": [
+        "?? benchmarks/middleware-specification-benchmark.php"
+    ],
+    "harness_sha256": "4f9565d5e15b37e75481184f71837ee004a3bc983099d3e92818a02c86ba820a",
+    "php": "8.2.33",
+    "os": "Linux",
+    "opcache": "off, off, off",
+    "memory_limit": "3G",
+    "samples": 3,
+    "results": [
+        [
+            {
+                "label": "plain_100k_memory_bytes",
+                "unit": "bytes",
+                "value": 12749760
+            },
+            {
+                "label": "plain_100k_construction_ms",
+                "unit": "ms",
+                "value": 13.372114
+            },
+            {
+                "label": "nested_10k_memory_bytes",
+                "unit": "bytes",
+                "value": 104186296
+            },
+            {
+                "label": "nested_10k_construction_ms",
+                "unit": "ms",
+                "value": 85.853876
+            },
+            {
+                "label": "nested_10k_construction_plus_signature_ms",
+                "unit": "ms",
+                "value": 86.112209
+            },
+            {
+                "label": "repeated_signature_100k_ms",
+                "unit": "ms",
+                "value": 10.663046
+            },
+            {
+                "label": "var_export_typical_bytes",
+                "unit": "bytes",
+                "value": 246
+            },
+            {
+                "label": "var_export_nested_bytes",
+                "unit": "bytes",
+                "value": 2853
+            },
+            {
+                "label": "serialize_typical_bytes",
+                "unit": "bytes",
+                "value": 219
+            },
+            {
+                "label": "serialize_nested_bytes",
+                "unit": "bytes",
+                "value": 2146
+            },
+            {
+                "label": "retained_after_release_bytes",
+                "unit": "bytes",
+                "value": 0
+            },
+            {
+                "label": "signed_100k_live_memory_bytes",
+                "unit": "bytes",
+                "value": 11701232
+            },
+            {
+                "label": "signed_100k_retained_after_gc_bytes",
+                "unit": "bytes",
+                "value": -96
+            }
+        ],
+        [
+            {
+                "label": "plain_100k_memory_bytes",
+                "unit": "bytes",
+                "value": 12749760
+            },
+            {
+                "label": "plain_100k_construction_ms",
+                "unit": "ms",
+                "value": 13.272871
+            },
+            {
+                "label": "nested_10k_memory_bytes",
+                "unit": "bytes",
+                "value": 104186296
+            },
+            {
+                "label": "nested_10k_construction_ms",
+                "unit": "ms",
+                "value": 80.989802
+            },
+            {
+                "label": "nested_10k_construction_plus_signature_ms",
+                "unit": "ms",
+                "value": 86.966537
+            },
+            {
+                "label": "repeated_signature_100k_ms",
+                "unit": "ms",
+                "value": 10.974992
+            },
+            {
+                "label": "var_export_typical_bytes",
+                "unit": "bytes",
+                "value": 246
+            },
+            {
+                "label": "var_export_nested_bytes",
+                "unit": "bytes",
+                "value": 2853
+            },
+            {
+                "label": "serialize_typical_bytes",
+                "unit": "bytes",
+                "value": 219
+            },
+            {
+                "label": "serialize_nested_bytes",
+                "unit": "bytes",
+                "value": 2146
+            },
+            {
+                "label": "retained_after_release_bytes",
+                "unit": "bytes",
+                "value": 0
+            },
+            {
+                "label": "signed_100k_live_memory_bytes",
+                "unit": "bytes",
+                "value": 11701232
+            },
+            {
+                "label": "signed_100k_retained_after_gc_bytes",
+                "unit": "bytes",
+                "value": -96
+            }
+        ],
+        [
+            {
+                "label": "plain_100k_memory_bytes",
+                "unit": "bytes",
+                "value": 12749760
+            },
+            {
+                "label": "plain_100k_construction_ms",
+                "unit": "ms",
+                "value": 14.402846
+            },
+            {
+                "label": "nested_10k_memory_bytes",
+                "unit": "bytes",
+                "value": 104186296
+            },
+            {
+                "label": "nested_10k_construction_ms",
+                "unit": "ms",
+                "value": 81.97863
+            },
+            {
+                "label": "nested_10k_construction_plus_signature_ms",
+                "unit": "ms",
+                "value": 80.750579
+            },
+            {
+                "label": "repeated_signature_100k_ms",
+                "unit": "ms",
+                "value": 9.955685
+            },
+            {
+                "label": "var_export_typical_bytes",
+                "unit": "bytes",
+                "value": 246
+            },
+            {
+                "label": "var_export_nested_bytes",
+                "unit": "bytes",
+                "value": 2853
+            },
+            {
+                "label": "serialize_typical_bytes",
+                "unit": "bytes",
+                "value": 219
+            },
+            {
+                "label": "serialize_nested_bytes",
+                "unit": "bytes",
+                "value": 2146
+            },
+            {
+                "label": "retained_after_release_bytes",
+                "unit": "bytes",
+                "value": 0
+            },
+            {
+                "label": "signed_100k_live_memory_bytes",
+                "unit": "bytes",
+                "value": 11701232
+            },
+            {
+                "label": "signed_100k_retained_after_gc_bytes",
+                "unit": "bytes",
+                "value": -96
+            }
+        ]
+    ]
+}

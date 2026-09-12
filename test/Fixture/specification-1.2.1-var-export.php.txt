@@ -1,0 +1,42 @@
+\Sirix\Mezzio\Routing\Contracts\MiddlewareSpecification::__set_state(array(
+   'service' => 'float.middleware',
+   'arguments' => 
+  array (
+    'value' => 1.01,
+    'rate' => 1.5,
+  ),
+   'canonicalArguments' => 
+  array (
+    'type' => 'array',
+    'entries' => 
+    array (
+      0 => 
+      array (
+        'key' => 
+        array (
+          'type' => 'string',
+          'value' => 'value',
+        ),
+        'value' => 
+        array (
+          'type' => 'float',
+          'value' => '3ff028f5c28f5c29',
+        ),
+      ),
+      1 => 
+      array (
+        'key' => 
+        array (
+          'type' => 'string',
+          'value' => 'rate',
+        ),
+        'value' => 
+        array (
+          'type' => 'float',
+          'value' => '3ff8000000000000',
+        ),
+      ),
+    ),
+  ),
+   'factory' => NULL,
+))
