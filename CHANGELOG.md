@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-11-21
+
+### Changed
+- Supported PHP window is now 8.3–8.6 (8.6 added, 8.2 dropped).
+- Development tooling: PHPUnit `^12.5`, Rector `UP_TO_PHP_83` (without the obsolete `EARLY_RETURN` set),
+  PHP CS Fixer `@PHP8x3Migration`; the CI matrix covers PHP 8.3–8.6.
+
+### Added
+- Tests for the fail-closed decoding of native serialization payloads: malformed compact (version 2)
+  and legacy canonical tree (version 1) inputs are rejected for each reachable decoder check, `null` and `bool` arguments round trip, and
+  version 1 payloads with every scalar type rehydrate.
 
 ## [1.2.2] - 2026-09-12
 

@@ -1407,6 +1407,419 @@ final class MiddlewareSpecificationTest extends TestCase
         }
     }
 
+    #[Test]
+    public function nativeSerializationRoundTripsNullAndBoolArguments(): void
+    {
+        $arguments = [
+            'none'     => null,
+            'enabled'  => true,
+            'disabled' => false,
+            'nested'   => [null, false],
+        ];
+        $specification = new MiddlewareSpecification('middleware', 'Factory', $arguments);
+        $rehydrated    = unserialize(serialize($specification), [
+            'allowed_classes' => [MiddlewareSpecification::class],
+        ]);
+
+        self::assertInstanceOf(MiddlewareSpecification::class, $rehydrated);
+        self::assertSame($arguments, $rehydrated->arguments);
+        self::assertSame($specification->signature(), $rehydrated->signature());
+    }
+
+    #[Test]
+    #[DataProvider('malformedCompactArguments')]
+    public function nativeUnserializationRejectsMalformedCompactArguments(mixed $arguments): void
+    {
+        $state              = (new MiddlewareSpecification('middleware'))->__serialize();
+        $state['arguments'] = $arguments;
+
+        $this->expectException(InvalidMiddlewareSpecificationException::class);
+        $this->expectExceptionMessage('canonical arguments are invalid');
+
+        (new MiddlewareSpecification('middleware'))->__unserialize($state);
+    }
+
+    /** @return iterable<string, array{mixed}> */
+    public static function malformedCompactArguments(): iterable
+    {
+        yield 'non-string payload' => [[
+            'a' => 1,
+        ]];
+
+        yield 'empty payload' => [''];
+
+        yield 'top-level scalar' => ['s:1:x;'];
+
+        yield 'array without colon' => ['a'];
+
+        yield 'array key is array' => ['a:1:a:0:s:1:x;'];
+
+        yield 'string longer than payload' => ['s:5:ab;'];
+
+        yield 'string without terminator' => ['a:1:s:1:x;s:1:yz'];
+
+        yield 'int without terminator' => ['a:1:s:1:x;i:5'];
+
+        yield 'float with invalid hex' => ['a:1:s:1:x;f:zzzzzzzzzzzzzzzz;'];
+
+        yield 'float truncated' => ['a:1:s:1:x;f:3ff0;'];
+
+        yield 'float without terminator' => ['a:1:s:1:x;f:3ff0000000000000'];
+
+        yield 'float with wrong terminator' => ['a:1:s:1:x;f:3ff0000000000000x'];
+
+        yield 'bool with invalid flag' => ['a:1:s:1:x;b:2;'];
+
+        yield 'bool without terminator' => ['a:1:s:1:x;b:1'];
+
+        yield 'null without terminator' => ['a:1:s:1:x;n'];
+
+        yield 'null with garbage' => ['a:1:s:1:x;nx'];
+
+        yield 'array with fewer entries than count' => ['a:2:s:1:x;n;'];
+    }
+
+    #[Test]
+    public function nativeUnserializationSupportsEveryScalarTypeInVersionOnePayloads(): void
+    {
+        $class   = MiddlewareSpecification::class;
+        $payload = 'O:' . strlen($class) . ':"' . $class . '":' . substr(serialize([
+            'version'            => 1,
+            'service'            => 'middleware',
+            'factory'            => 'Factory',
+            'canonicalArguments' => [
+                'type'    => 'array',
+                'entries' => [
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'none',
+                    ], [
+                        'type' => 'null',
+                    ]),
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'enabled',
+                    ], [
+                        'type'  => 'bool',
+                        'value' => true,
+                    ]),
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'count',
+                    ], [
+                        'type'  => 'int',
+                        'value' => 7,
+                    ]),
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'name',
+                    ], [
+                        'type'  => 'string',
+                        'value' => 'api',
+                    ]),
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'list',
+                    ], [
+                        'type'    => 'array',
+                        'entries' => [
+                            $this->canonicalEntry([
+                                'type'  => 'int',
+                                'value' => 0,
+                            ], [
+                                'type'  => 'bool',
+                                'value' => false,
+                            ]),
+                        ],
+                    ]),
+                ],
+            ],
+        ]), 2);
+        $specification = unserialize($payload, [
+            'allowed_classes' => [$class],
+        ]);
+
+        self::assertInstanceOf(MiddlewareSpecification::class, $specification);
+        self::assertSame('middleware', $specification->service);
+        self::assertSame('Factory', $specification->factory);
+        self::assertSame([
+            'none'    => null,
+            'enabled' => true,
+            'count'   => 7,
+            'name'    => 'api',
+            'list'    => [false],
+        ], $specification->arguments);
+    }
+
+    #[Test]
+    #[DataProvider('malformedLegacyCanonicalTrees')]
+    public function nativeUnserializationRejectsMalformedVersionOneCanonicalTree(mixed $canonicalArguments): void
+    {
+        $this->expectException(InvalidMiddlewareSpecificationException::class);
+        $this->expectExceptionMessage('canonical arguments are invalid');
+
+        (new MiddlewareSpecification('middleware'))->__unserialize([
+            'version'            => 1,
+            'service'            => 'middleware',
+            'factory'            => null,
+            'canonicalArguments' => $canonicalArguments,
+        ]);
+    }
+
+    /** @return iterable<string, array{mixed}> */
+    public static function malformedLegacyCanonicalTrees(): iterable
+    {
+        $key = static fn (string $name): array => [
+            'type'  => 'string',
+            'value' => $name,
+        ];
+        $tree = static fn (array ...$entries): array => [
+            'type'    => 'array',
+            'entries' => $entries,
+        ];
+
+        yield 'non-array node' => ['array'];
+
+        yield 'node without type' => [[
+            'entries' => [],
+        ]];
+
+        yield 'node with non-string type' => [[
+            'type' => 1,
+        ]];
+
+        yield 'unknown node type' => [[
+            'type' => 'object',
+        ]];
+
+        yield 'top-level scalar node' => [[
+            'type' => 'null',
+        ]];
+
+        yield 'array node without entries' => [[
+            'type' => 'array',
+        ]];
+
+        yield 'array node with renamed entries key' => [[
+            'type'  => 'array',
+            'items' => [],
+        ]];
+
+        yield 'entries are not a list' => [[
+            'type'    => 'array',
+            'entries' => [
+                'x' => [],
+            ],
+        ]];
+
+        yield 'entry is not an array' => [[
+            'type'    => 'array',
+            'entries' => ['entry'],
+        ]];
+
+        yield 'entry with extra key' => [[
+            'type'    => 'array',
+            'entries' => [[
+                'key'   => $key('x'),
+                'value' => [
+                    'type' => 'null',
+                ],
+                'extra' => 1,
+            ]],
+        ]];
+
+        yield 'entry key is not a node' => [
+            $tree([
+                'key'   => 'x',
+                'value' => [
+                    'type' => 'null',
+                ],
+            ])];
+
+        yield 'entry key has unsupported type' => [
+            $tree([
+                'key'   => [
+                    'type'  => 'bool',
+                    'value' => true,
+                ],
+                'value' => [
+                    'type' => 'null',
+                ],
+            ])];
+
+        yield 'entry key without value' => [
+            $tree([
+                'key'   => [
+                    'type'  => 'string',
+                    'other' => 'x',
+                ],
+                'value' => [
+                    'type' => 'null',
+                ],
+            ])];
+
+        yield 'int key with string value' => [
+            $tree([
+                'key'   => [
+                    'type'  => 'int',
+                    'value' => '1',
+                ],
+                'value' => [
+                    'type' => 'null',
+                ],
+            ])];
+
+        yield 'null node with value' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'null',
+                    'value' => null,
+                ],
+            ])];
+
+        yield 'bool node with int value' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'bool',
+                    'value' => 1,
+                ],
+            ])];
+
+        yield 'int node with float value' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'int',
+                    'value' => 1.0,
+                ],
+            ])];
+
+        yield 'float node with invalid hex' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'float',
+                    'value' => 'zzzzzzzzzzzzzzzz',
+                ],
+            ])];
+
+        yield 'float node with short hex' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'float',
+                    'value' => '3ff0',
+                ],
+            ])];
+
+        yield 'float node with non-string value' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'float',
+                    'value' => 1.0,
+                ],
+            ])];
+
+        yield 'string node with int value' => [
+            $tree([
+                'key'   => $key('x'),
+                'value' => [
+                    'type'  => 'string',
+                    'value' => 1,
+                ],
+            ])];
+
+        yield 'duplicate keys' => [
+            $tree(
+                [
+                    'key'   => $key('x'),
+                    'value' => [
+                        'type' => 'null',
+                    ],
+                ],
+                [
+                    'key'   => $key('x'),
+                    'value' => [
+                        'type' => 'null',
+                    ],
+                ],
+            )];
+    }
+
+    #[Test]
+    public function setStateAcceptsConsistentNestedLegacyFourPropertyPayload(): void
+    {
+        $arguments     = [
+            'options' => [
+                'enabled' => true,
+            ],
+        ];
+        $specification = MiddlewareSpecification::__set_state($this->canonicalState([
+            $this->canonicalEntry([
+                'type'  => 'string',
+                'value' => 'options',
+            ], [
+                'type'    => 'array',
+                'entries' => [
+                    $this->canonicalEntry([
+                        'type'  => 'string',
+                        'value' => 'enabled',
+                    ], [
+                        'type'  => 'bool',
+                        'value' => true,
+                    ]),
+                ],
+            ]),
+        ], $arguments));
+
+        self::assertSame($arguments, $specification->arguments);
+    }
+
+    #[Test]
+    public function nativeUnserializationRejectsVersionOneTreeWithReferencedNode(): void
+    {
+        $value = [
+            'type' => 'null',
+        ];
+        $entry = [
+            'key'   => [
+                'type'  => 'string',
+                'value' => 'x',
+            ],
+            'value' => &$value,
+        ];
+
+        $this->expectException(InvalidMiddlewareSpecificationException::class);
+        $this->expectExceptionMessage('canonical arguments are invalid');
+
+        (new MiddlewareSpecification('middleware'))->__unserialize([
+            'version'            => 1,
+            'service'            => 'middleware',
+            'factory'            => null,
+            'canonicalArguments' => [
+                'type'    => 'array',
+                'entries' => [$entry],
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function nativeUnserializationRejectsVersionTwoPayloadWithRenamedKey(): void
+    {
+        $this->expectException(InvalidMiddlewareSpecificationException::class);
+        $this->expectExceptionMessage('Serialized middleware specification state is invalid');
+
+        (new MiddlewareSpecification('middleware'))->__unserialize([
+            'version'  => 2,
+            'service'  => 'middleware',
+            'factory'  => null,
+            'argument' => 'a:0:',
+        ]);
+    }
+
     private function ieee754Float(string $hex): float
     {
         $value = unpack('Evalue', pack('H*', $hex))['value'] ?? null;
